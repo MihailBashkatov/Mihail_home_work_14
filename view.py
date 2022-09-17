@@ -8,6 +8,7 @@ app = Flask(__name__)
 
 # Распознавание кириллицы
 app.config['JSON_AS_ASCII'] = False
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
 
 
 @app.route('/movie/<title>', methods=['GET'])
@@ -43,4 +44,4 @@ def get_new_by_genre(genre):
 
 
 if __name__ == '__main__':
-    app.run(port=10001)
+    app.run(port=10002)
