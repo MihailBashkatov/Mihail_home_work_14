@@ -35,6 +35,7 @@ def search_by_period(year_one, year_two):
                              FROM netflix
                              WHERE release_year BETWEEN ? and ?
                              ORDER by release_year DESC
+                             LIMIT 30
                         """
         result.execute(query, (year_one, year_two))
         movies = result.fetchall()
@@ -48,9 +49,40 @@ def search_by_period(year_one, year_two):
 
 
 def search_by_rating(user_rating):
-    """ Поиск по диапазону рейтингу"""
+    """ Поиск по  рейтингу"""
 
-    pass
+    with sqlite3.connect('netflix.db') as connection:
+        result = connection.cursor()
+        if user_rating.strip().lower() == "children".strip().lower():
+            query = """SELECT title, rating, description
+                           FROM netflix
+                           WHERE rating = 'G'
+                           LIMIT 100
+                          """
+            result.execute(query)
+        elif user_rating.strip().lower() == "family".strip().lower():
+            query = """SELECT title, rating, description
+                            FROM netflix
+                            WHERE rating = 'PG-13' OR  rating = 'G'
+                            LIMIT 100
+                          """
+            result.execute(query)
+        elif user_rating.strip().lower() == "adult".strip().lower():
+            query = """SELECT title, rating, description
+                             FROM netflix
+                             WHERE rating = 'NC-17' OR  rating = 'R'
+                             LIMIT 100
+                          """
+            result.execute(query)
+        movies = result.fetchall()
+        movies_by_rating = []
+        for movie in movies:
+            chosen_movies = dict()
+            chosen_movies["title"] = movie[0]
+            chosen_movies["rating"] = movie[1]
+            chosen_movies["description"] = movie[2].strip()
+            movies_by_rating.append(chosen_movies)
+    return movies_by_rating
 
 
 def search_new_by_genre(genre):
@@ -103,7 +135,7 @@ def search_by_actors(actor_one, actor_two):
         return actors_list_needed
 
 
-def search_by_types(type_movie, year, genre):
+def search_by_types(type_chosen, year, genre):
     """ Получает в качестве аргумента  тип картины (фильм или сериал), год выпуска и ее жанр
           Возвращает список названий картин с их описаниями в JSON"""
 
@@ -115,7 +147,7 @@ def search_by_types(type_movie, year, genre):
                               AND release_year = ?
                               AND listed_in = ?
                         """
-        result.execute(query, ((type_movie), (year), (genre)))
+        result.execute(query, (type_chosen, year, genre))
         movies = result.fetchall()
         movie_list = []
         for movie in movies:
